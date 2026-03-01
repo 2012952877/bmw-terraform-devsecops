@@ -9,7 +9,6 @@ jobs:
   terraform-ci:
     name: 'Terraform Plan & SecOps'
     runs-on: ubuntu-latest
-    # 核心修复：直接把 Secrets 映射为 Terraform 官方识别的环境变量
     env:
       ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
       ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
@@ -17,28 +16,30 @@ jobs:
       ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
 
     steps:
-    - name: 📥 Checkout Code
-      uses: actions/checkout@v3
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4 # 官方文档推荐使用 v4 以获得更好的性能
 
-    - name: ⚙️ Setup Terraform
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_version: 1.5.0
+      - name: ⚙️ Setup Terraform
+        uses: hashicorp/setup-terraform@v3 # 升级到 v3 匹配最新环境
+        with:
+          terraform_version: 1.5.0
 
-    - name: 🚀 Terraform Init
-      run: terraform init
+      - name: 🚀 Terraform Init
+        run: terraform init
 
-    # IaC 静态安全扫描 (Trivy)
-    - name: 🕵️ Run Trivy Security Scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'config'
-        hide-progress: false
-        format: 'table'
-        exit-code: '1' # 核心阻断逻辑
-        ignore-unfixed: true
-        severity: 'CRITICAL,HIGH'
+      # 🛑 鬼门关：使用官方标准 Action 进行 IaC 扫描
+      - name: Install Trivy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install -y trivy
 
-    # 沙盘推演
-    - name: 📝 Terraform Plan
-      run: terraform plan -out=tfplan
+      - name: Run Trivy
+        run: |
+          trivy config --exit-code 1 --severity CRITICAL,HIGH .
+
+            - name: 📝 Terraform Plan
+              run: terraform plan -out=tfplan
