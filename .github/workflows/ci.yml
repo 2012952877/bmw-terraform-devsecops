@@ -30,14 +30,11 @@ jobs:
 
     # IaC 静态安全扫描 (Trivy)
     - name: 🕵️ Run Trivy Security Scanner
-      uses: aquasecurity/trivy-action@0.28.0
-      with:
-        scan-type: 'config'
-        hide-progress: false
-        format: 'table'
-        exit-code: '1' # 核心阻断逻辑
-        ignore-unfixed: true
-        severity: 'CRITICAL,HIGH'
+      run: |
+        echo "⬇️ 正在下载 Trivy 引擎..."
+        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+        echo "🚀 开始扫描基础设施代码..."
+        trivy config --exit-code 1 --severity CRITICAL,HIGH .
 
     # 沙盘推演
     - name: 📝 Terraform Plan
