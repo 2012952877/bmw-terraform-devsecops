@@ -1,0 +1,47 @@
+name: 'Terraform CI & Security Scan'
+
+# 触发条件：当有人往 main 分支提 PR 时触发
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  terraform-ci:
+    name: 'Terraform Plan & SecOps'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    # 无密钥登录 Azure (OIDC)
+    - name: Azure Login via OIDC
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.5.0
+
+    - name: Terraform Init
+      run: terraform init
+
+    # IaC 静态安全扫描 (DevSecOps 核心)
+    - name: 🕵️ Run Trivy Security Scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'config'
+        hide-progress: false
+        format: 'table'
+        exit-code: '1' # 核心阻断逻辑：发现高危漏洞直接熔断报错！
+        ignore-unfixed: true
+        severity: 'CRITICAL,HIGH'
+
+    # 沙盘推演 (不改变真实环境)
+    - name: Terraform Plan
+      run: terraform plan -out=tfplan
