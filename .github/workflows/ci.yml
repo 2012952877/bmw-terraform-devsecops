@@ -30,12 +30,12 @@ jobs:
 
     # IaC 静态安全扫描 (Trivy)
     - name: 🕵️ Run Trivy Security Scanner
-      run: |
-        echo "⬇️ 1. 正在召唤 Trivy 引擎 (安装到当前目录以绕过 Root 权限)..."
-        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b .
-        
-        echo "🚀 2. 炮管预热完毕，开始对准代码开火！"
-        ./trivy config --exit-code 1 --severity CRITICAL,HIGH .
+      uses: aquasecurity/trivy-action@v0.10.1
+      with:
+        scan-type: config
+        exit-code: 1
+        severity: CRITICAL,HIGH
+        scan-path: .
 
     # 沙盘推演
     - name: 📝 Terraform Plan
