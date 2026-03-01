@@ -29,13 +29,14 @@ jobs:
       run: terraform init
 
     # IaC 静态安全扫描 (Trivy)
-    - name: 🕵️ Run Trivy Security Scanner
-      uses: aquasecurity/trivy-action@v0
+    - name: 🕵️ Run Trivy Security Scanner (IaC Mode)
+      uses: aquasecurity/trivy-action@0.33.1 # 使用您在文档中看到的最新稳定版
       with:
-        scan-type: config
-        exit-code: 1
-        severity: CRITICAL,HIGH
-        scan-path: .
+        scan-type: 'config' # 专门用于扫描 IaC 配置（Terraform/Docker/K8s）
+        hide-progress: true # 减少日志干扰
+        format: 'table'     # 在控制台打印漂亮的表格
+        exit-code: '1'      # 🚨 发现 CRITICAL/HIGH 漏洞时，强制让流水线报错退出
+        severity: 'CRITICAL,HIGH' # 只关注最致命的漏洞
 
     # 沙盘推演
     - name: 📝 Terraform Plan
