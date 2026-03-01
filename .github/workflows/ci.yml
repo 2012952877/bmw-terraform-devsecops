@@ -31,13 +31,10 @@ jobs:
     # IaC 静态安全扫描 (Trivy)
     - name: 🕵️ Run Trivy Security Scanner
       run: |
-        echo "⬇️ 1. 从 GitHub Release 直接下载 Trivy 二进制压缩包..."
-        wget -q https://github.com/aquasecurity/trivy/releases/download/v0.49.1/trivy_0.49.1_Linux-64bit.tar.gz
+        echo "⬇️ 1. 正在召唤 Trivy 引擎 (安装到当前目录以绕过 Root 权限)..."
+        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b .
         
-        echo "📦 2. 解压安装包..."
-        tar zxvf trivy_0.49.1_Linux-64bit.tar.gz
-        
-        echo "🚀 3. 使用当前目录的 ./trivy 引擎开火扫描！"
+        echo "🚀 2. 炮管预热完毕，开始对准代码开火！"
         ./trivy config --exit-code 1 --severity CRITICAL,HIGH .
 
     # 沙盘推演
