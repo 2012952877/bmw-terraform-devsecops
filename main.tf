@@ -17,3 +17,25 @@ resource "azurerm_virtual_network" "vnet" {
   location            = azurerm_resource_group.rg.location     # 核心知识点：隐式依赖
   resource_group_name = azurerm_resource_group.rg.name         # 核心知识点：隐式依赖
 }
+
+# 3. 创建网络安全组 (NSG) 作为宿主
+resource "azurerm_network_security_group" "nsg" {
+  name                = "bmw-nsg-core"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+}
+
+# 4. 故意编写的高危违规代码：全网开放 SSH 端口
+resource "azurerm_network_security_rule" "bad_rule" {
+  name                        = "allow_ssh_anywhere"
+  priority                    = 100
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "22"
+  source_address_prefix       = "*"  # 违规：向全世界 0.0.0.0/0 敞开大门
+  destination_address_prefix  = "*"
+  resource_group_name         = azurerm_resource_group.rg.name
+  network_security_group_name = "bmw-nsg-core"
+}
