@@ -30,7 +30,7 @@ jobs:
 
     # IaC 静态安全扫描 (Trivy)
     - name: 🕵️ Run Trivy Security Scanner
-      uses: aquasecurity/trivy-action@v0.10.1
+      uses: aquasecurity/trivy-action@master
       with:
         scan-type: config
         exit-code: 1
