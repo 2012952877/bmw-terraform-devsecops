@@ -30,7 +30,7 @@ jobs:
 
     # IaC 静态安全扫描 (Trivy)
     - name: 🕵️ Run Trivy Security Scanner
-      uses: aquasecurity/trivy-action@master
+      uses: aquasecurity/trivy-action@0.28.0
       with:
         scan-type: 'config'
         hide-progress: false
